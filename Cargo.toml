@@ -1,0 +1,8 @@
+[package]
+name = "ggez_snake"
+version = "0.1.0"
+authors = ["Gray Olson <gray@grayolson.com>"]
+
+[dependencies]
+ggez = "0.4"
+rand = "0.4"
