@@ -16,6 +16,8 @@ use std::time::{Instant, Duration};
 // some random numbers later. 
 use rand::{Rng};
 
+// The first thing we want to do is set up some constants that will help us out later.
+
 // Here we define the size of our game board in terms of how many grid
 // cells it will take up. We choose to make a 30 x 20 game board.
 const GRID_SIZE: (i16, i16) = (30, 20);
@@ -34,7 +36,7 @@ const UPDATES_PER_SECOND: f32 = 8.0;
 // And we get the milliseconds of delay that this update rate corresponds to.
 const MILLIS_PER_UPDATE: u64 = (1.0 / UPDATES_PER_SECOND * 1000.0) as u64;
 
-/// Here we define a struct that will hold an entity's position on our game board
+/// Now we define a struct that will hold an entity's position on our game board
 /// or grid which we defined above. We'll use signed integers because we only want
 /// to store whole numbers, and we need them to be signed so that they work properly
 /// with our modulus arithmetic later.
@@ -67,13 +69,13 @@ impl<T> ModuloSigned for T
 }
 
 impl GridPosition {
-    /// A standard helper function so that we can create a new `GridPosition`
+    /// We make a standard helper function so that we can create a new `GridPosition`
     /// more easily.
     pub fn new(x: i16, y: i16) -> Self {
         GridPosition { x, y }
     }
 
-    /// A helper function that will give us a random `GridPosition` from
+    /// As well as a helper function that will give us a random `GridPosition` from
     /// `(0, 0)` to `(max_x, max_y)`
     pub fn random(max_x: i16, max_y: i16) -> Self {
         let mut rng = rand::thread_rng();
@@ -83,7 +85,7 @@ impl GridPosition {
          rng.gen_range::<i16>(0, max_y)).into() 
     }
 
-    /// A helper function that takes one grid position and returns a new one after
+    /// We'll make another helper function that takes one grid position and returns a new one after
     /// making one move in the direction of `dir`. We use our `SignedModulo` trait
     /// above, which is now implemented on `i16` because it satisfies the trait bounds,
     /// to automatically wrap around within our grid size if the move would have otherwise
@@ -98,7 +100,7 @@ impl GridPosition {
     }
 }
 
-/// Here we make a helper function that allows us to convert easily between
+/// We implement the `From` trait, which in this case allows us to convert easily between
 /// a GridPosition and a ggez `graphics::Rect` which fills that grid cell.
 /// Now we can just call `.into()` on a `GridPosition` where we want a
 /// `Rect` that represents that grid cell.
@@ -109,7 +111,7 @@ impl From<GridPosition> for graphics::Rect {
     }
 }
 
-/// And here we implement a helper function to allow us to easily convert between
+/// And here we implement `From` again to allow us to easily convert between
 /// `(i16, i16)` and a `GridPosition`.
 impl From<(i16, i16)> for GridPosition {
     fn from(pos: (i16, i16)) -> Self {
