@@ -5,16 +5,16 @@ extern crate rand;
 
 // Next we need to actually `use` the pieces of ggez that we are going
 // to need frequently.
-use ggez::{event, graphics, GameResult, Context};
 use ggez::event::KeyCode;
+use ggez::{event, graphics, Context, GameResult};
 
 // We'll bring in some things from `std` to help us in the future.
 use std::collections::LinkedList;
-use std::time::{Instant, Duration};
+use std::time::{Duration, Instant};
 
 // And finally bring the `Rng` trait into scope so that we can generate
-// some random numbers later. 
-use rand::{Rng};
+// some random numbers later.
+use rand::Rng;
 
 // The first thing we want to do is set up some constants that will help us out later.
 
@@ -26,12 +26,14 @@ const GRID_CELL_SIZE: (i16, i16) = (32, 32);
 
 // Next we define how large we want our actual window to be by multiplying
 // the components of our grid size by its corresponding pixel size.
-const SCREEN_SIZE: (u32, u32) = (GRID_SIZE.0 as u32 * GRID_CELL_SIZE.0 as u32,
-                                 GRID_SIZE.1 as u32 * GRID_CELL_SIZE.1 as u32);
+const SCREEN_SIZE: (u32, u32) = (
+    GRID_SIZE.0 as u32 * GRID_CELL_SIZE.0 as u32,
+    GRID_SIZE.1 as u32 * GRID_CELL_SIZE.1 as u32,
+);
 
 // Here we're defining how many quickly we want our game to update. This will be
 // important later so that we don't have our snake fly across the screen because
-// it's moving a full tile every frame. 
+// it's moving a full tile every frame.
 const UPDATES_PER_SECOND: f32 = 8.0;
 // And we get the milliseconds of delay that this update rate corresponds to.
 const MILLIS_PER_UPDATE: u64 = (1.0 / UPDATES_PER_SECOND * 1000.0) as u64;
@@ -60,11 +62,12 @@ trait ModuloSigned {
 // that we need in order to implement a modulus function that works for negative numbers
 // as well.
 impl<T> ModuloSigned for T
-    where T: std::ops::Add<Output = T> + std::ops::Rem<Output = T> + Clone
+where
+    T: std::ops::Add<Output = T> + std::ops::Rem<Output = T> + Clone,
 {
     fn modulo(&self, n: T) -> T {
         // Because of our trait bounds, we can now apply these operators.
-        (self.clone() % n.clone() + n.clone()) % n.clone()
+        (self.clone() % n.clone() + n.clone()) % n
     }
 }
 
@@ -81,8 +84,11 @@ impl GridPosition {
         let mut rng = rand::thread_rng();
         // We can use `.into()` to convert from `(i16, i16)` to a `GridPosition` since
         // we implement `From<(i16, i16)>` for `GridPosition` below.
-        (rng.gen_range::<i16>(0, max_x), 
-         rng.gen_range::<i16>(0, max_y)).into() 
+        (
+            rng.gen_range::<i16>(0, max_x),
+            rng.gen_range::<i16>(0, max_y),
+        )
+            .into()
     }
 
     // We'll make another helper function that takes one grid position and returns a new one after
@@ -106,8 +112,12 @@ impl GridPosition {
 // `Rect` that represents that grid cell.
 impl From<GridPosition> for graphics::Rect {
     fn from(pos: GridPosition) -> Self {
-        graphics::Rect::new_i32(pos.x as i32 * GRID_CELL_SIZE.0 as i32, pos.y as i32 * GRID_CELL_SIZE.1 as i32,
-                                GRID_CELL_SIZE.0 as i32, GRID_CELL_SIZE.1 as i32)
+        graphics::Rect::new_i32(
+            pos.x as i32 * GRID_CELL_SIZE.0 as i32,
+            pos.y as i32 * GRID_CELL_SIZE.1 as i32,
+            GRID_CELL_SIZE.0 as i32,
+            GRID_CELL_SIZE.1 as i32,
+        )
     }
 }
 
@@ -152,7 +162,7 @@ impl Direction {
             KeyCode::Down => Some(Direction::Down),
             KeyCode::Left => Some(Direction::Left),
             KeyCode::Right => Some(Direction::Right),
-            _ => None
+            _ => None,
         }
     }
 }
@@ -174,7 +184,7 @@ impl Segment {
 // This is again an abstraction over a `GridPosition` that represents
 // a piece of food the snake can eat. It can draw itself.
 struct Food {
-    pos: GridPosition
+    pos: GridPosition,
 }
 
 impl Food {
@@ -182,13 +192,12 @@ impl Food {
         Food { pos }
     }
 
-    // Here is the first time we see what drawing looks like with ggez. 
+    // Here is the first time we see what drawing looks like with ggez.
     // We have a function that takes in a `&mut ggez::Context` which we use
     // with the helpers in `ggez::graphics` to do drawing. We also return a
     // `ggez::GameResult` so that we can use the `?` operator to bubble up
     // failure of drawing.
     fn draw(&self, ctx: &mut Context) -> GameResult {
-
         // First we have to create a MeshBuilder
         let mesh = graphics::MeshBuilder::new()
             // We call rectangle to make a square
@@ -201,7 +210,7 @@ impl Food {
                 // Last we set the color to draw with, in this case all food will be
                 // colored blue.
                 graphics::Color::new(0.0, 0.0, 1.0, 1.0),
-            )
+            )?
             .build(ctx)?;
 
         graphics::draw(ctx, &mesh, graphics::DrawParam::default())?;
@@ -249,7 +258,7 @@ impl Snake {
             head: Segment::new(pos),
             dir: Direction::Right,
             last_update_dir: Direction::Right,
-            body: body,
+            body,
             ate: None,
         }
     }
@@ -258,11 +267,7 @@ impl Snake {
     // the snake eats a given piece of Food based
     // on its current position
     fn eats(&self, food: &Food) -> bool {
-        if self.head.pos == food.pos {
-            true
-        } else {
-            false
-        }
+        self.head.pos == food.pos
     }
 
     // A helper function that determines whether
@@ -304,7 +309,7 @@ impl Snake {
         // which gives the illusion that the snake is moving. In reality, all the segments stay
         // stationary, we just add a segment to the front and remove one from the back. If we eat
         // a piece of food, then we leave the last segment so that we extend our body by one.
-        if let None = self.ate {
+        if self.ate.is_none() {
             self.body.pop_back();
         }
         // And set our last_update_dir to the direction we just moved.
@@ -326,12 +331,11 @@ impl Snake {
                     seg.pos.into(),
                     // Again we set the color (in this case an orangey color)
                     graphics::Color::new(1.0, 0.5, 0.0, 1.0),
-                )
+                )?
                 .build(ctx)?;
             graphics::draw(ctx, &mesh, graphics::DrawParam::default())?;
         }
         // And then we do the same for the head, instead making it fully red to distinguish it.
-
 
         // And then we do the same for the head, instead making it fully red to distinguish it
         let mesh = graphics::MeshBuilder::new()
@@ -339,7 +343,7 @@ impl Snake {
                 graphics::DrawMode::fill(),
                 self.head.pos.into(),
                 graphics::Color::new(1.0, 0.0, 0.0, 1.0),
-            )
+            )?
             .build(ctx)?;
 
         graphics::draw(ctx, &mesh, graphics::DrawParam::default())?;
@@ -364,7 +368,7 @@ struct GameState {
 
 impl GameState {
     // Our new function will set up the initial state of our game.
-    pub fn new() -> Self {
+    pub fn new() -> GameResult<Self> {
         // First we put our snake a quarter of the way across our grid in the x axis
         // and half way down the y axis. This works well since we start out moving to the right.
         let snake_pos = (GRID_SIZE.0 / 4, GRID_SIZE.1 / 2).into();
@@ -372,18 +376,18 @@ impl GameState {
         // earlier.
         let food_pos = GridPosition::random(GRID_SIZE.0, GRID_SIZE.1);
 
-        GameState {
+        Ok(GameState {
             snake: Snake::new(snake_pos),
             food: Food::new(food_pos),
             gameover: false,
             last_update: Instant::now(),
-        }
+        })
     }
 }
 
 // Now we implement EventHandler for GameState. This provides an interface
 // that ggez will call automatically when different events happen.
-impl event::EventHandler for GameState {
+impl event::EventHandler<ggez::GameError> for GameState {
     // Update will happen on every frame before it is drawn. This is where we update
     // our game state to react to whatever is happening in the game world.
     fn update(&mut self, _ctx: &mut Context) -> GameResult {
@@ -404,7 +408,7 @@ impl event::EventHandler for GameState {
                         Ate::Food => {
                             let new_food_pos = GridPosition::random(GRID_SIZE.0, GRID_SIZE.1);
                             self.food.pos = new_food_pos;
-                        },
+                        }
                         // If it ate itself, we set our gameover state to true.
                         Ate::Itself => {
                             self.gameover = true;
@@ -437,7 +441,13 @@ impl event::EventHandler for GameState {
     }
 
     // key_down_event gets fired when a key gets pressed.
-    fn key_down_event(&mut self, _ctx: &mut Context, keycode: KeyCode, _keymod: ggez::input::keyboard::KeyMods, _repeat: bool) {
+    fn key_down_event(
+        &mut self,
+        _ctx: &mut Context,
+        keycode: KeyCode,
+        _keymod: ggez::input::keyboard::KeyMods,
+        _repeat: bool,
+    ) {
         // Here we attempt to convert the KeyCode into a Direction using the helper
         // we defined earlier.
         if let Some(dir) = Direction::from_keycode(keycode) {
@@ -451,30 +461,23 @@ impl event::EventHandler for GameState {
     }
 }
 
-fn main() {
+fn main() -> GameResult {
     // Here we use a ContextBuilder to setup metadata about our game. First the title and author
-    let (mut ctx, mut event_loop) = ggez::ContextBuilder::new("snake", "Gray Olson")
+    let (ctx, event_loop) = ggez::ContextBuilder::new("snake", "Gray Olson")
         // Next we set up the window. This title will be displayed in the title bar of the window.
-
         .window_setup(ggez::conf::WindowSetup::default().title("Snake!"))
-
         // Now we get to set the size of the window, which we use our SCREEN_SIZE constant from earlier to help with
-
-        .window_mode(ggez::conf::WindowMode::default().dimensions(SCREEN_SIZE.0 as f32, SCREEN_SIZE.1 as f32))
-
+        .window_mode(
+            ggez::conf::WindowMode::default()
+                .dimensions(SCREEN_SIZE.0 as f32, SCREEN_SIZE.1 as f32),
+        )
         // And finally we attempt to build the context and create the window. If it fails, we panic with the message
         // "Failed to build ggez context"
-
-        .build().expect("Failed to build ggez context");
+        .build()
+        .expect("Failed to build ggez context");
 
     // Next we create a new instance of our GameState struct, which implements EventHandler
-    let state = &mut GameState::new();
+    let state = GameState::new()?;
     // And finally we actually run our game, passing in our context, event_loop and state.
-    match event::run(&mut ctx, &mut event_loop, state) {
-        // If we encounter an error, we print it before exiting
-        Err(e) => println!("Error encountered running game: {}", e),
-        // And if not, we print a message saying we ran cleanly. Hooray!
-        Ok(_) => println!("Game exited cleanly!")
-    }
+    event::run(ctx, event_loop, state)
 }
-

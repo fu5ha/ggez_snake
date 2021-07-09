@@ -4,5 +4,5 @@ version = "0.1.0"
 authors = ["Gray Olson <gray@grayolson.com>"]
 
 [dependencies]
-ggez = "0.5.1"
+ggez = "0.6.0-rc2"
 rand = "0.4"
