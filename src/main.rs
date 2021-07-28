@@ -1,8 +1,5 @@
 // First we'll import the crates we need for our game;
 // in this case that is just `ggez` and `rand`.
-extern crate ggez;
-extern crate rand;
-
 // Next we need to actually `use` the pieces of ggez that we are going
 // to need frequently.
 use ggez::event::KeyCode;
@@ -84,11 +81,7 @@ impl GridPosition {
         let mut rng = rand::thread_rng();
         // We can use `.into()` to convert from `(i16, i16)` to a `GridPosition` since
         // we implement `From<(i16, i16)>` for `GridPosition` below.
-        (
-            rng.gen_range::<i16>(0, max_x),
-            rng.gen_range::<i16>(0, max_y),
-        )
-            .into()
+        (rng.gen_range(0..max_x), rng.gen_range(0..max_y)).into()
     }
 
     // We'll make another helper function that takes one grid position and returns a new one after
