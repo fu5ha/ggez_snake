@@ -327,7 +327,7 @@ impl Snake {
                 .rectangle(
                     // Then set DrawMode to fill the rectangle
                     graphics::DrawMode::fill(),
-                    // We convert that Segment's position into
+                    // We use `.into` (provided by the rust `Into` trait) to convert our position to the `mint` type that ggez's api wants
                     seg.pos.into(),
                     // Again we set the color (in this case an orangey color)
                     graphics::Color::new(1.0, 0.5, 0.0, 1.0),
